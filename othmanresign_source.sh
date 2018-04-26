@@ -56,13 +56,21 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
 	
 	find "$tempextracted/Payload/$APPLICATION/libloader" -type f > /tmp/N_directories"$filename".txt 2>/dev/null
 	
+	echo "Find files.."
+	
 	find -d $tempextracted \( -name "*.app" -o -name "*.appex" -o -name "*.framework" -o -name "*.dylib"  \) >> /tmp/N_directories"$filename".txt
 	
+	echo "Extracting provision.."
+	
 	security cms -D -i $tempextracted"/Payload/$APPLICATION/embedded.mobileprovision" >> /tmp/N_entitlements_full"$filename".plist 2>/dev/null
+	
+	echo "Print Entitlements.."
 	
 	/usr/libexec/PlistBuddy -x -c 'Print:Entitlements' /tmp/N_entitlements_full"$filename".plist >> /tmp/N_entitlements"$filename".plist
 	
 	while IFS='' read -r line || [[ -n "$line" ]]; do
+		
+		echo "Resign $line .."
 		
 		/usr/bin/codesign --continue -f -s "$DEVID" --entitlements "/tmp/N_entitlements"$filename".plist"  "$line" >/dev/null 2>&1
 		
